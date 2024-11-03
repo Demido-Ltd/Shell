@@ -1,62 +1,57 @@
 import * as readline from "node:readline";
 import "dotenv/config";
-import CommandHandler, {type Command} from "./CommandHandler.ts";
+import { type Command } from "./CommandsHandler.ts";
+import { DiscordBot } from "../discord-bot/DiscordBot.ts";
+import ENVSanitizer from "./ENVSanitizer.ts";
 
 export default class DemidoShell {
-    public readonly rl;
-    public commands: Map<string, Command> = new Map<string, Command>();
-
-    private parseCommand = async (command: string): Promise<{ parameters: string[]; flags: { [key: string]: string | null } }> => {
-        const words = command.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
-
-        const result = {
-            parameters: [] as string[],
-            flags: {} as { [key: string]: string | null }
-        };
-
-        const length = words.length;
-
-        if (length === 0) {
-            console.error("No command provided.");
-            return result;
-        }
-
-        for (let i = 0; i < length; i++) {
-            const currentWord = words[i];
-
-            if (currentWord.startsWith('--')) {
-                const key = currentWord.slice(2).replace(/-/g, "_");
-                if (i + 1 < length && !words[i + 1].startsWith('--')) result.flags[key] = words[++i].replace(/^"|"$/g, '');
-                else result.flags[key] = null;
-            } else result.parameters.push(currentWord.replace(/(^"|"$)/g, ''));
-        }
-
-        return result;
-    };
+    private isRunning = true;
+    public rl!: readline.Interface;
+    public commands = new Map<string, Command>();
 
     constructor() {
-        this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        new CommandHandler(this);
-        const promptUser = () => {
-            // @ts-ignore
-            !this.rl.closed && this.rl.question(process.env.CLI_PREFIX!, async (input: string) => {
-                const command = await this.parseCommand(input.trim().replace(/\s+/g, ' '));
-                const commandName = command.parameters.at(0);
-                if (!commandName) return promptUser();
-
-                // Find the command handler by name or alias
-                const commandHandler = this.commands.get(commandName);
-                if (!commandHandler) await this.noCommandError(commandName);
-                else await commandHandler.execute(command.parameters.slice(1), command.flags, this);
-
-                promptUser();
-            });
-        };
-
-        promptUser();
+        (async () => {
+            await ENVSanitizer.sanitize();
+            this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+            console.log("Starting shell...");
+            await this.initializeBot();
+        })();
     }
 
-    private noCommandError = async (command: string) => {
-        console.log(`There is no command named \`${command}\`.\nCheck "help" for more information.`);
+    private initializeBot = async () => {
+        if (process.env.DISCORD_BOT === "true") {
+            try { console.log(await DiscordBot.run()); } catch (e) { console.error("Error starting Discord bot:", e); }
+        }
+        await this.promptUser();
     };
+
+    private promptUser = async () => {
+        if (!this.isRunning) return;
+        this.rl.question(process.env.CLI_PREFIX!, async (input) => {
+            const command = await this.parseCommand(input.trim().replace(/\s+/g, ' '));
+            if (command) {
+                const commandHandler = this.commands.get(command.name);
+                commandHandler ? await commandHandler.execute(command.parameters, command.flags, this) : this.noCommandError(command.name);
+            }
+            await this.promptUser();
+        });
+    };
+
+    public exitShell = () => {
+        this.isRunning = false;
+        this.rl.close();
+    };
+
+    private parseCommand = async (command: string) => {
+        const words = command.match(/(?:[^\s"]+|"[^"]*")+/g)?.map(w => w.replace(/(^"|"$)/g, '')) || [];
+        if (!words.length) return;
+        const [name, ...parameters] = words;
+        const flags = parameters.reduce((acc, val, i, arr) => {
+            if (val.startsWith('--')) acc[val.slice(2).replace(/-/g, "_")] = arr[i + 1]?.startsWith('--') ? null : arr[++i];
+            return acc;
+        }, {} as { [key: string]: string | null });
+        return { name, parameters, flags };
+    };
+
+    private noCommandError = (command: string) => console.log(`There is no command named \`${command}\`.\nCheck "help" for more information.`);
 }

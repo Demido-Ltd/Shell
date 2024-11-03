@@ -1,1 +1,3 @@
-console.log("Hello via Bun!");
+import DemidoShell from "./src/DemidoShell.ts";
+
+new DemidoShell();
