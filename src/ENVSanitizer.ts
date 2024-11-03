@@ -10,6 +10,11 @@ interface ENVError {
     errorMessage: string;
 }
 
+/**
+ * Utility class for sanitizing and validating configuration variables defined in the .env file.
+ * This class checks for required variables, validates their formats, and provides error reporting.
+ * @author [Stefan Cucoranu](https://github.com/elpideus)
+ */
 export default class ENVSanitizer {
     private static readonly requiredEnvVars = [
         { key: "DISCORD_BOT", type: "boolean", default: "true", allowDefault: true },
@@ -28,6 +33,10 @@ export default class ENVSanitizer {
 
     private static ERROR_CODES: Record<ErrorType, number> = { missing: 2, invalid: 1, invalidDefault: 1, emptyString: 3, invalidFormat: 4 };
 
+    /**
+     * Checks the required environment variables and returns an array of errors, if any.
+     * @returns {ENVError[]} An array of ENVError objects detailing any issues found.
+     */
     public static check = (): ENVError[] => {
         return this.requiredEnvVars.map(({ key, type, default: def, allowDefault }) => {
             const value = process.env[key];
@@ -39,7 +48,12 @@ export default class ENVSanitizer {
         }).filter((error): error is ENVError => Boolean(error)) || [];
     };
 
-    public static sanitize = async () => {
+    /**
+     * Analyzes the .env file for required variables, validates their values,
+     * and updates them if necessary, logging any errors found.
+     * @returns {Promise<void>}
+     */
+    public static sanitize = async (): Promise<void> => {
         console.log("Analyzing .env...");
         const errors = this.check();
         if (!errors.length) return console.clear();
@@ -64,8 +78,13 @@ export default class ENVSanitizer {
         }
     };
 
-
-    private static updateEnvIfNeeded = async (key: string) => {
+    /**
+     * Updates the .env file if the specified variable is missing or has an invalid value.
+     * @private
+     * @param {string} key - The key of the environment variable to check and potentially update.
+     * @returns {Promise<void>}
+     */
+    private static updateEnvIfNeeded = async (key: string): Promise<void> => {
         const envVar = this.requiredEnvVars.find(v => v.key === key);
         if (!envVar || process.env[key] === envVar.default) return;
         try {

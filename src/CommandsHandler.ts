@@ -2,23 +2,43 @@ import type DemidoShell from "./DemidoShell.ts";
 import path from "node:path";
 import fs from "node:fs";
 
+/**
+ * Command that can be executed in the shell.
+ */
 export interface Command {
-    name: string;
-    aliases?: string[];
-    execute: (params: string[], flags: { [key: string]: string | null }, shell: DemidoShell) => Promise<void>;
+    name: string; // The name of the command.
+    aliases?: string[]; // Optional array of aliases for the command.
+    execute: (params: string[], flags: { [key: string]: string | null }, shell: DemidoShell) => Promise<void>; // Function to execute when the command is called.
 }
 
+/**
+ * Handles the loading and registration of commands for the {@link DemidoShell}.
+ */
 export default class CommandsHandler {
     private readonly shell: DemidoShell;
 
+    /**
+     * Initializes a new CommandsHandler instance and loads commands.
+     * @param {DemidoShell} shell - The {@link DemidoShell} instance to associate with [this handler]{@link CommandsHandler}.
+     */
     constructor(shell: DemidoShell) {
         this.shell = shell;
-        this.loadCommands();
+        this.loadCommands().then();
     }
 
-    private loadCommands = async () => {
+    /**
+     * Loads commands from the commands directory.
+     * @private
+     * @returns {Promise<void>}
+     */
+    private loadCommands = async (): Promise<void> => {
         const commandsDir = path.join(__dirname, "./commands");
 
+        /**
+         * Recursively loads commands from a specified directory.
+         * @param {string} dir - The directory to load commands from.
+         * @returns {Promise<void>}
+         */
         const loadCommandsFromDirectory = async (dir: string) => {
             const commandFiles = fs.readdirSync(dir, { withFileTypes: true });
 
@@ -37,9 +57,13 @@ export default class CommandsHandler {
         }
 
         await loadCommandsFromDirectory(commandsDir);
-
     }
 
+    /**
+     * Registers a command with [the shell]{@link DemidoShell}.
+     * @private
+     * @param {Command} command - The command to register.
+     */
     private registerCommand(command: Command) {
         if (command.name) {
             this.shell.commands.set(command.name, command);
