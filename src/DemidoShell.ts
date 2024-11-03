@@ -1,6 +1,6 @@
 import * as readline from "node:readline";
 import "dotenv/config";
-import { type Command } from "./CommandsHandler.ts";
+import CommandsHandler, { type Command } from "./CommandsHandler.ts";
 import { DiscordBot } from "../discord-bot/DiscordBot.ts";
 import ENVSanitizer from "./ENVSanitizer.ts";
 
@@ -22,6 +22,7 @@ export default class DemidoShell {
         if (process.env.DISCORD_BOT === "true") {
             try { console.log(await DiscordBot.run()); } catch (e) { console.error("Error starting Discord bot:", e); }
         }
+        new CommandsHandler(this);
         await this.promptUser();
     };
 

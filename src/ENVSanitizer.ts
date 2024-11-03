@@ -43,17 +43,27 @@ export default class ENVSanitizer {
         console.log("Analyzing .env...");
         const errors = this.check();
         if (!errors.length) return console.clear();
-        console.error(`! Found ${errors.length} errors in .env !`);
-        const defaultErrors = errors.filter(e => e.errorCode === 1).length;
-        errors.forEach(({ errorMessage }) => console.error(errorMessage));
-        if (defaultErrors < errors.length) {
+
+        const filteredErrors = errors.filter(error => {
+            return !(process.env.DISCORD_BOT && error.key.includes("DISCORD"));
+        });
+
+        filteredErrors.forEach((error) => {
+            console.error(error.errorMessage);
+        });
+
+        if (filteredErrors.length > 0) console.error(`! Found ${filteredErrors.length} errors in .env !`);
+        const defaultErrors = filteredErrors.filter(e => e.errorCode === 1).length;
+
+        if (defaultErrors < filteredErrors.length) {
             console.log("Copying contents of .env to .env.bckp");
             fs.copyFileSync(path.join(process.cwd(), ".env"), path.join(process.cwd(), ".env.bckp"));
             console.log("Starting sanitization process...");
-            await Promise.all(errors.map(e => this.updateEnvIfNeeded(e.key)));
+            await Promise.all(filteredErrors.map(e => this.updateEnvIfNeeded(e.key)));
             console.log("Sanitization process completed.");
         }
     };
+
 
     private static updateEnvIfNeeded = async (key: string) => {
         const envVar = this.requiredEnvVars.find(v => v.key === key);
