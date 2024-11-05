@@ -1,6 +1,7 @@
 import type DemidoShell from "./DemidoShell.ts";
 import path from "node:path";
 import fs from "node:fs";
+import {DiscordCommandsHandler} from "./commands/discord/Discord.ts";
 
 /**
  * Command that can be executed in the shell.
@@ -23,7 +24,9 @@ export default class CommandsHandler {
      */
     constructor(shell: DemidoShell) {
         this.shell = shell;
-        this.loadCommands().then();
+        this.loadCommands().then(() => {
+            if (process.env.DISCORD_BOT) new DiscordCommandsHandler().loadCommands().then();
+        });
     }
 
     /**
@@ -39,15 +42,13 @@ export default class CommandsHandler {
          * @param {string} dir - The directory to load commands from.
          * @returns {Promise<void>}
          */
-        const loadCommandsFromDirectory = async (dir: string) => {
+        const loadCommandsFromDirectory = async (dir: string): Promise<void> => {
             const commandFiles = fs.readdirSync(dir, { withFileTypes: true });
 
             for (const commandFile of commandFiles) {
                 const commandPath = path.join(dir, commandFile.name);
 
                 if (commandFile.isDirectory()) {
-                    if (process.env.DISCORD_BOT!.toLowerCase() == "false" && commandFile.name == "discord" ||
-                        process.env.TELEGRAM_BOT!.toLowerCase() == "false" && commandFile.name == "telegram") continue;
                     await loadCommandsFromDirectory(commandPath);
                 } else if (commandFile.name.endsWith("ts") || commandFile.name.endsWith("js")) {
                     const command: Command = (await import(commandPath)).default || {};

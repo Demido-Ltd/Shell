@@ -1,7 +1,7 @@
 import * as readline from "node:readline";
 import "dotenv/config";
 import CommandsHandler, { type Command } from "./CommandsHandler.ts";
-import { DiscordBot } from "../discord-bot/DiscordBot.ts";
+import {Demido, DiscordBot} from "../discord-bot/DiscordBot.ts";
 import ENVSanitizer from "./ENVSanitizer.ts";
 
 /**
@@ -12,19 +12,22 @@ export default class DemidoShell {
     private isRunning = true;
     public rl!: readline.Interface;
     public commands = new Map<string, Command>();
+    public discordClient: Demido | null = null;
+
+    /**Sanitizes environment variables, initializes the commands handler, attempts to start the Discord Bot and starts prompting the user.*/
+    public start = async () => {
+        await ENVSanitizer.sanitize();
+        console.log("Starting shell...");
+        this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+        new CommandsHandler(this);
+        await this.initializeBot();
+    }
 
     /**
      * Initializes the DemidoShell instance.
-     * It sanitizes environment variables, initializes the commands handler, attempts to start the Discord Bot and starts prompting the user.
      */
     constructor() {
-        (async () => {
-            await ENVSanitizer.sanitize();
-            this.rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-            new CommandsHandler(this);
-            await this.initializeBot();
-            console.log("Starting shell...");
-        })();
+        (async () => await this.start())();
     }
 
     /**
@@ -34,7 +37,9 @@ export default class DemidoShell {
      * @returns {Promise<void>}
      */
     private initializeBot = async (): Promise<void> => {
-        if (process.env.DISCORD_BOT === "true") try { console.log(await DiscordBot.run()); } catch (e) { console.error("Error starting Discord bot:", e); }
+        if (process.env.DISCORD_BOT === "true") try {
+            this.discordClient = await DiscordBot.run();
+        } catch (e) { console.error("Error starting Discord bot:", e); }
         await this.promptUser();
     };
 
@@ -70,7 +75,7 @@ export default class DemidoShell {
      * @param {string} command - The command string to parse.
      * @returns {Promise<{name: string, parameters: string[], flags: { [key: string]: string | null }} | undefined>}
      */
-    private parseCommand = async (command: string) => {
+    private parseCommand = async (command: string): Promise<{ name: string; parameters: string[]; flags: { [key: string]: string | null; }; } | undefined> => {
         const words = command.match(/(?:[^\s"]+|"[^"]*")+/g)?.map(w => w.replace(/(^"|"$)/g, '')) || [];
         if (!words.length) return;
         const [name, ...parameters] = words;
