@@ -4,6 +4,9 @@ import chalk from "chalk";
 export default {
     name: "get",
     execute: async (parameters: string[], flags: { [key: string]: string | null }, shell: DemidoShell) => {
+
+        // TODO: Optimize code, add oneliners, separate concerns
+
         const printOutput = (data: any[] | number) => {
             const output = typeof data === "number"
                 ? ("number_only" in flags ? data : `Demido is part of ${data} Discord servers.`)
@@ -13,7 +16,7 @@ export default {
             console.log(output);
         };
 
-        if (!parameters.length || !["servers", "guilds"].includes(parameters[0])) {
+        if (parameters.length < 1 || !["servers", "guilds"].includes(parameters[0])) {
             console.log("Invalid command. Please check the manual on how to use the \"get\" command.");
             console.log(chalk.gray("help discord get"));
             return;

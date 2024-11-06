@@ -17,10 +17,13 @@
     "@distube/spotify": "^2.0.2",
     "@distube/youtube": "^1.0.4",
     "@distube/ytdl-core": "^4.15.1",
+    "@types/mime-types": "^2.1.4",
+    "axios": "^1.7.7",
     "bufferutil": "^4.0.8",
     "chalk": "^5.3.0",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
+    "mime-types": "^2.1.35",
     "opusscript": "^0.1.1",
     "sodium": "^3.0.2",
     "zlib-sync": "^0.1.9"
