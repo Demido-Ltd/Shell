@@ -1,8 +1,10 @@
 import * as readline from "node:readline";
 import "dotenv/config";
 import CommandsHandler, { type Command } from "./CommandsHandler.ts";
-import {Demido, DiscordBot} from "../discord-bot/DiscordBot.ts";
 import ENVSanitizer from "./ENVSanitizer.ts";
+import { existsSync } from "fs";
+import path from "node:path";
+import {Update} from "./commands/discord/Update.ts";
 
 /**
  * Command-line interface shell that allows management of [Demido-Ltd.](https://github.com/Demido-Ltd) systems.
@@ -12,7 +14,7 @@ export default class DemidoShell {
     private isRunning = true;
     public rl!: readline.Interface;
     public commands = new Map<string, Command>();
-    public discordClient: Demido | null = null;
+    public discordClient: any | null = null; // Use correct type if available
 
     /**Sanitizes environment variables, initializes the commands handler, attempts to start the Discord Bot and starts prompting the user.*/
     public start = async () => {
@@ -27,7 +29,7 @@ export default class DemidoShell {
      * Initializes the DemidoShell instance.
      */
     constructor() {
-        (async () => await this.start())();
+        new Update(this).runUpdate(false).then(async () => await this.start());
     }
 
     /**
@@ -36,10 +38,22 @@ export default class DemidoShell {
      * @private
      * @returns {Promise<void>}
      */
-    private initializeBot = async (): Promise<void> => {
-        if (process.env.DISCORD_BOT === "true") try {
-            this.discordClient = await DiscordBot.run();
-        } catch (e) { console.error("Error starting Discord bot:", e); }
+    initializeBot = async (): Promise<void> => {
+        if (process.env.DISCORD_BOT === "true") {
+            const discordBotPath = path.join(__dirname, "../discord-bot/DiscordBot.ts");
+            if (existsSync(discordBotPath)) {
+                await (new Update(this)).runUpdate(false);
+                try {
+                    const { DiscordBot } = await import(discordBotPath);
+                    this.discordClient = await DiscordBot.run();
+                } catch (e) {
+                    console.error("Error starting Discord bot:", e);
+                }
+            } else {
+                console.warn("Discord bot module not found. Downloading latest version...");
+                await (new Update(this)).runUpdate();
+            }
+        }
         await this.promptUser();
     };
 

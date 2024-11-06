@@ -49,7 +49,10 @@ export default class CommandsHandler {
                 const commandPath = path.join(dir, commandFile.name);
 
                 if (commandFile.isDirectory()) {
-                    await loadCommandsFromDirectory(commandPath);
+                    if (commandFile.name === "discord") {
+                        const command: Command = (await import(path.join(commandPath, "Discord.ts"))).default || {};
+                        this.registerCommand(command);
+                    } else await loadCommandsFromDirectory(commandPath);
                 } else if (commandFile.name.endsWith("ts") || commandFile.name.endsWith("js")) {
                     const command: Command = (await import(commandPath)).default || {};
                     this.registerCommand(command);
