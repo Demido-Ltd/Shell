@@ -1,3 +1,4 @@
+// TODO: Add Documentation
 export default {
     name: "ping",
     aliases: ["p", "pingme"],

@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import { existsSync } from "fs";
 import path from "node:path";
 
+// TODO: Add Documentation
 export class Update{
     discordBotPath: string;
     shell: DemidoShell;

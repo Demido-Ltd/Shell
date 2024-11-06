@@ -3,6 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 import {type Command} from "../../CommandsHandler.ts";
 
+// TODO: Add Documentation
 export class DiscordCommandsHandler {
 
     public static discordCommands: Map<string, any> = new Map<string, any>();

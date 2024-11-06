@@ -1,6 +1,7 @@
 import type DemidoShell from "../DemidoShell.ts";
 import {DiscordBot} from "../../discord-bot/DiscordBot.ts";
 
+// TODO: Add Documentation
 export const exit = async (shell: DemidoShell, exit: boolean = true) => {
     shell.rl.close();
     shell.exitShell();

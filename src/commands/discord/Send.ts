@@ -3,6 +3,7 @@ import mime from "mime-types";
 import axios from "axios";
 import chalk from "chalk";
 
+// TODO: Add Documentation
 export default {
     name: "send",
     execute: async (parameters: string[], flags: { [key: string]: string | null }, shell: DemidoShell): Promise<void> => {
@@ -21,6 +22,7 @@ export default {
         if (parameters[0] === "message" || parameters[0] === "msg") {
             await channel.send(parameters[1]);
             console.log(`Message sent to ${channel.name} (${channel_id || chat_id}) in ${guild.name} (${guild_id}).`);
+            // TODO: Add Embeds support
         } else if (["image", "img", "photo", "picture"].includes(parameters[0])) {
             console.log("Sending image...");
             console.log(chalk.gray("(This may take a while)"));

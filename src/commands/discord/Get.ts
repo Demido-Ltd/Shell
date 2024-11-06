@@ -1,6 +1,7 @@
 import type DemidoShell from "../../DemidoShell.ts";
 import chalk from "chalk";
 
+// TODO: Add Documentation
 export default {
     name: "get",
     execute: async (parameters: string[], flags: { [key: string]: string | null }, shell: DemidoShell) => {
