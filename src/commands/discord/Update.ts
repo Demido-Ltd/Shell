@@ -21,6 +21,13 @@ export class Update{
         }
     }
 
+    private getPackageManager = (): string => {
+        try {
+            execSync("which bun", { stdio: "ignore" });  // For Unix-like systems
+            return "bun";
+        } catch (error) { return "npm"; }
+    }
+
     public runUpdate = async (showUpToDateMessage: boolean = true) => {
 
         if (existsSync(this.discordBotPath)) {
@@ -32,6 +39,9 @@ export class Update{
             if (localCommit !== remoteCommit) {
                 console.log("Updating Demido Discord bot...");
                 this.runCommand("git pull");
+                // TODO: Complete update logic. (Only update packages if the shell has been updated as well)
+                // process.chdir(path.join(__dirname, "../../../"));
+                // this.runCommand(`${this.getPackageManager} install`);
             } else if (showUpToDateMessage) console.log("Demido Discord bot is up to date.");
         } else {
             console.log("Downloading latest version of Demido Discord bot...");

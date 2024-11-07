@@ -2,6 +2,7 @@ import type DemidoShell from "../../DemidoShell.ts";
 import mime from "mime-types";
 import axios from "axios";
 import chalk from "chalk";
+import {EmbedBuilder} from "discord.js";
 
 // TODO: Add Documentation
 export default {
@@ -22,8 +23,28 @@ export default {
         if (parameters[0] === "message" || parameters[0] === "msg") {
             await channel.send(parameters[1]);
             console.log(`Message sent to ${channel.name} (${channel_id || chat_id}) in ${guild.name} (${guild_id}).`);
-            // TODO: Add Embeds support
-        } else if (["image", "img", "photo", "picture"].includes(parameters[0])) {
+        }
+
+        else if (parameters[0] === "embed") {
+            const embed = new EmbedBuilder()
+            if (!["none", "null", "nothing", "empty", "undefined"].includes(parameters[1])) embed.setTitle(parameters[1]);
+            if (!["none", "null", "nothing", "empty", "undefined"].includes(parameters[2])) embed.setDescription(parameters[2]);
+            if (flags.color) embed.setColor(parseInt(flags.color.replace("#", ""), 16)|| 0x57f287); else embed.setColor(0x57f287);
+            if (flags.author) {
+                let authorObject: {name: string, iconURL: undefined | string} = {name: flags.author, iconURL: undefined};
+                if (!flags.disable_author_icon) authorObject.iconURL = flags.author_icon || "https://www.iprcenter.gov/image-repository/blank-profile-picture.png/@@images/image.png";
+                embed.setAuthor(authorObject);
+            }
+            if (flags.footer) embed.setFooter({text: flags.footer});
+            if (flags.thumbnail) embed.setThumbnail(flags.thumbnail);
+            if (flags.image) embed.setImage(flags.image);
+            if (flags.url) embed.setURL(flags.url);
+
+            await channel.send({ embeds: [embed] });
+            console.log(`Embed sent to ${channel.name} (${channel_id || chat_id}) in ${guild.name} (${guild_id}).`);
+        }
+
+        else if (["image", "img", "photo", "picture"].includes(parameters[0])) {
             console.log("Sending image...");
             console.log(chalk.gray("(This may take a while)"));
             const fileUrl = parameters[1].replace("/m/", "/").replace(/media\d+/g, "media");
@@ -45,7 +66,9 @@ export default {
             } catch {
                 console.error(`Only image files are allowed.\n${fileUrl} is not an image.`);
             }
-        } else {
+        }
+
+        else {
             console.error(`Invalid command: ${parameters[0]}. Expected "message" or "msg".`);
         }
     }
