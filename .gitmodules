@@ -1,0 +1,4 @@
+[submodule "discord-bot"]
+	path = discord-bot
+	url = https://github.com/Demido-Ltd/Discord-Bot.git
+	branch = main
