@@ -13,7 +13,6 @@ interface ENVError {
 /**
  * Utility class for sanitizing and validating configuration variables defined in the .env file.
  * This class checks for required variables, validates their formats, and provides error reporting.
- * @author [Stefan Cucoranu](https://github.com/elpideus)
  */
 export default class ENVSanitizer {
     private static readonly requiredEnvVars = [

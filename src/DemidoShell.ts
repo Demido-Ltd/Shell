@@ -8,7 +8,6 @@ import {Update} from "./commands/discord/Update.ts";
 
 /**
  * Command-line interface shell that allows management of [Demido-Ltd.](https://github.com/Demido-Ltd) systems.
- * @author [Stefan Cucoranu](https://github.com/elpideus)
  */
 export default class DemidoShell {
     private isRunning = true;
