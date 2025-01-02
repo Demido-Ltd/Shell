@@ -26,20 +26,40 @@ empowering us to focus on our development goals without worrying about underlyin
 
 ### Clone the repository
 ```shell
-git clone https://github.com/Demido-Ltd/shell.git
+git clone https://github.com/Demido-Ltd/shell.git "./Demido Shell"
+```
+
+You may also want to enter the folder so you can follow through the next steps.
+```shell
+cd "./Demido Shell"
 ```
 
 ### Install packages
 > We highly recommend and support the use of [bun](https://bun.sh) for optimal performance. While you can still install
 packages using `npm install`, building and running the shell with tools other than bun may result in unforeseen issues.
 Please note that we do not offer support for problems arising from using alternative tools.
+>
+> **If you do not have bun use one of the following commands:**
+>
+> For Windows users:
+> ```shell
+> powershell -c "irm bun.sh/install.ps1 | iex"
+> ```
+> 
+> For Linux & Mac OS users:
+> ```shell
+> curl -fsSL https://bun.sh/install | bash
+> ```
+
+This command will install all the required dependencies for the project to run smoothly:
 ```shell
 bun install
 ```
+###### _Please note that this will also install all the packages required by the various bots and services. Most of the libraries we use are very lightweight and will not run unless you also have the bot or service running, however you may want to check `package.json` and remove any packages you might not need or want. Please be careful while doing so as it may lead to unexpected errors._
 
 ### Start the shell
 ```shell
 bun run start
 ```
 
-###### It is also possible to start the shell by running `bun index.ts`.
+###### _It is also possible to start the shell by running `bun index.ts`_.
